@@ -46,14 +46,10 @@ public class UserService {
      * @throws ru.semavin.microservice.util.exceptions.UserNotFoundException если пользователь не найден.
      */
     @Transactional(readOnly = true)
-    public UserDTO getUserById(Long id) {
+    public UserDTO findUserDTOById(Long id) {
         log.info("Запрос информации о пользователе с ID: {}", id);
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Пользователь с ID {} не найден", id);
-                    return ExceptionFactory.userNotFound(id);
-                });
-        return userMapper.userToUserDTO(user);
+
+        return userMapper.userToUserDTO(findUserById(id));
     }
 
     /**
@@ -73,7 +69,7 @@ public class UserService {
                     return ExceptionFactory.userNotFound(id);
                 });
 
-        userMapper.updateEntityFromDto(userDto, user);
+        userMapper.updateUserFromDto(userDto, user);
         log.info("Данные пользователя с ID {} обновлены", id);
         return userMapper.userToUserDTO(user);
     }
@@ -107,5 +103,22 @@ public class UserService {
                 .toList();
         log.info("Найдено {} пользователей", users.size());
         return users;
+    }
+
+    /**
+     * Ищет пользователя по идентификатору.
+     *
+     * <p>Если пользователь найден, метод возвращает объект {@link User}.
+     * Если пользователя нет в базе, выбрасывается исключение
+     * {@link ru.semavin.microservice.util.exceptions.UserNotFoundException}.</p>
+     *
+     * @param id идентификатор пользователя, которого требуется найти.
+     * @return объект {@link User}, если пользователь найден.
+     * @throws ru.semavin.microservice.util.exceptions.UserNotFoundException если пользователь с указанным ID не найден.
+     */
+    @Transactional(readOnly = true)
+    public User findUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> ExceptionFactory.userNotFound(id));
     }
 }

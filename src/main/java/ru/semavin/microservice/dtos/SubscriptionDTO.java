@@ -26,7 +26,7 @@ public class SubscriptionDTO {
     /**
      * Название сервиса, на который оформлена подписка.
      */
-    @Schema(description = "Название сервиса", example = "Netflix")
+    @Schema(description = "Название сервиса", example = "Яндекс.Плюс")
     private String serviceName;
 
     /**
