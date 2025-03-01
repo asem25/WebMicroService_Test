@@ -33,14 +33,14 @@ public class UserController {
     /**
      * Создание нового пользователя.
      *
-     * @param userDto Объект, содержащий данные пользователя.
+     * @param userDTO Объект, содержащий данные пользователя.
      * @return Созданный пользователь с присвоенным ID.
      */
     @Operation(summary = "Создать пользователя")
     @PostMapping
-    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDto) {
-        log.info("Создание пользователя: {}", userDto);
-        UserDTO created = userService.createUser(userDto);
+    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
+        log.info("Endpoint -'post /users': Создание пользователя: {}", userDTO);
+        UserDTO created = userService.createUser(userDTO);
         return ResponseEntity
                 .created(URI.create("/users/" + created.getId()))
                 .body(created);
@@ -55,7 +55,7 @@ public class UserController {
     @Operation(summary = "Получить пользователя по ID")
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
-        log.info("Получение пользователя с id: {}", id);
+        log.info("Endpoint -'get /users/{id}': Получение пользователя с id: {}", id);
         UserDTO userDto = userService.getUserById(id);
         return ResponseEntity.ok(userDto);
     }
@@ -70,7 +70,7 @@ public class UserController {
     @Operation(summary = "Обновить пользователя по ID")
     @PutMapping("/{id}")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDto) {
-        log.info("Обновление пользователя с id: {}. Новые данные: {}", id, userDto);
+        log.info("Endpoint -'put /users/{id}': Обновление пользователя с id: {}. Новые данные: {}", id, userDto);
         UserDTO updated = userService.updateUser(id, userDto);
         return ResponseEntity.ok(updated);
     }
@@ -84,7 +84,7 @@ public class UserController {
     @Operation(summary = "Удалить пользователя по ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        log.info("Удаление пользователя с id: {}", id);
+        log.info("Endpoint -'delete /users/{id}': Удаление пользователя с id: {}", id);
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
@@ -98,7 +98,7 @@ public class UserController {
     @Operation(summary = "Получить список всех пользователей")
     @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
-        log.info("Получение списка всех пользователей");
+        log.info("Endpoint -'get /users': Получение списка всех пользователей");
         List<UserDTO> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
