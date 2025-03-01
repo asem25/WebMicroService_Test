@@ -36,7 +36,7 @@ public class SubscriptionService {
     /**
      * Добавляет подписку пользователю.
      *
-     * @param userId ID пользователя
+     * @param userId          ID пользователя
      * @param subscriptionDTO Данные подписки
      * @return DTO созданной подписки
      */
@@ -85,7 +85,7 @@ public class SubscriptionService {
      *
      * @param userId ID пользователя, который хочет удалить подписку.
      * @param subId  ID подписки, которую необходимо удалить.
-     * @throws ru.semavin.microservice.util.exceptions.SubscriptionNotFoundException если подписка не найдена в системе.
+     * @throws ru.semavin.microservice.util.exceptions.SubscriptionNotFoundException        если подписка не найдена в системе.
      * @throws ru.semavin.microservice.util.exceptions.SubscriptionNotBelongToUserException если подписка существует, но принадлежит другому пользователю.
      */
     public void unsubscribe(Long userId, Long subId) {
@@ -104,6 +104,7 @@ public class SubscriptionService {
         subscriptionRepository.deleteById(subId);
         log.info("Подписка ID {} успешно удалена у пользователя ID {}", subId, userId);
     }
+
     /**
      * Получает ТОП-3 самых популярных подписок по количеству пользователей.
      *
@@ -118,21 +119,29 @@ public class SubscriptionService {
      * @return Список {@link SubscriptionTopDTO}, содержащий ТОП-3 подписок.
      */
     public List<SubscriptionTopDTO> getTopSubscriptions() {
+        log.info("Запрос на получение ТОП-3 популярных подписок");
+
         List<String> subscriptionsNames = subscriptionRepository.findAllTop().stream()
                 .limit(3)
                 .toList();
 
+        log.info("Найдены названия подписок для топа: {}", subscriptionsNames);
+
         List<Subscription> subscriptionList = subscriptionRepository.findByServiceNameIn(subscriptionsNames);
+        log.info("Найдено {} подписок по этим названиям", subscriptionList.size());
 
         Map<String, Long> subscriptionCountMap = subscriptionList.stream()
                 .collect(Collectors.groupingBy(Subscription::getServiceName, Collectors.counting()));
 
-        return subscriptionCountMap.entrySet().stream()
+        List<SubscriptionTopDTO> result = subscriptionCountMap.entrySet().stream()
                 .map(entry -> SubscriptionTopDTO.builder()
                         .serviceName(entry.getKey())
                         .count(entry.getValue())
                         .build()
                 ).sorted(Comparator.comparingLong(SubscriptionTopDTO::getCount).reversed())
                 .toList();
+
+        log.info("Сформирован список топ подписок: {}", result);
+        return result;
     }
 }

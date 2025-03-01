@@ -47,7 +47,7 @@ public class UserController {
     @PostMapping
     public ResponseEntity<UserDTO> createUser(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные пользователя")
-            @RequestBody UserDTO userDTO) {
+            @RequestBody @Valid UserDTO userDTO) {
         log.info("Endpoint -'POST /users': Создание пользователя: {}", userDTO);
         UserDTO created = userService.createUser(userDTO);
         return ResponseEntity
