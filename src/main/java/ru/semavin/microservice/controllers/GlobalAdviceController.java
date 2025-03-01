@@ -3,12 +3,19 @@ package ru.semavin.microservice.controllers;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.semavin.microservice.dtos.ErrorResponseDTO;
 import ru.semavin.microservice.util.exceptions.SubscriptionNotBelongToUserException;
 import ru.semavin.microservice.util.exceptions.SubscriptionNotFoundException;
 import ru.semavin.microservice.util.exceptions.UserNotFoundException;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Глобальный обработчик исключений для REST API.
@@ -79,5 +86,25 @@ public class GlobalAdviceController {
                         .message(ex.getMessage())
                         .build()
         );
+    }
+    /**
+     * Обрабатывает ошибки валидации (`@Valid`).
+     *
+     * @param ex исключение, содержащее информацию о полях с ошибками.
+     * @return JSON-ответ с деталями ошибки.
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponseDTO> handleValidationException(MethodArgumentNotValidException ex) {
+        log.error("Ошибка валидации: {}", ex.getMessage());
+
+        List<String> errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> String.format("Поле '%s': %s", error.getField(), error.getDefaultMessage()))
+                .toList();
+
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponseDTO.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message(errors.toString())
+                .build());
     }
 }
