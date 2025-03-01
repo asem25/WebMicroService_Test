@@ -1,6 +1,7 @@
 package ru.semavin.microservice.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -12,10 +13,7 @@ import ru.semavin.microservice.util.exceptions.SubscriptionNotBelongToUserExcept
 import ru.semavin.microservice.util.exceptions.SubscriptionNotFoundException;
 import ru.semavin.microservice.util.exceptions.UserNotFoundException;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Глобальный обработчик исключений для REST API.
@@ -106,5 +104,29 @@ public class GlobalAdviceController {
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message(errors.toString())
                 .build());
+    }
+    /**
+     * Обрабатывает ошибки нарушения целостности данных в базе
+     *
+     * <p>Этот обработчик вызывается, когда в базе данных возникает ошибка типа
+     * {@link org.springframework.dao.DataIntegrityViolationException}, например,
+     * при попытке создать дублирующуюся запись подписки (нарушение ограничения `UNIQUE`).</p>
+     *
+     * <p>Если пользователь уже подписан на сервис, метод возвращает HTTP статус {@code 409 Conflict}.</p>
+     *
+     *
+     * @param ex выброшенное исключение {@link org.springframework.dao.DataIntegrityViolationException}.
+     * @return JSON-ответ {@link ErrorResponseDTO} с HTTP статусом {@code 409 Conflict} и сообщением об ошибке.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponseDTO> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        log.error("Ошибка уникальности данных: {}", ex.getMessage());
+
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.builder()
+                .status(HttpStatus.CONFLICT.value())
+                .message("Пользователь уже подписан на этот сервис")
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 }

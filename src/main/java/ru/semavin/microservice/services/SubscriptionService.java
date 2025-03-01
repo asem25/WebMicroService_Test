@@ -2,16 +2,23 @@ package ru.semavin.microservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.semavin.microservice.dtos.SubscriptionDTO;
+import ru.semavin.microservice.dtos.SubscriptionTopDTO;
 import ru.semavin.microservice.mapper.SubscriptionMapper;
 import ru.semavin.microservice.models.Subscription;
 import ru.semavin.microservice.models.User;
 import ru.semavin.microservice.repositrories.SubscriptionRepository;
 import ru.semavin.microservice.util.ExceptionFactory;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
  * Сервисный слой для управления подписками
  * Отвечает за создание, получение списка подписок, отмену подписки у пользователя.
@@ -37,6 +44,11 @@ public class SubscriptionService {
         log.info("Добавление подписки пользователю с ID: {}", userId);
 
         User user = userService.findUserById(userId);
+
+        if (subscriptionRepository.existsByUserAndServiceName(user, subscriptionDTO.getServiceName())) {
+            throw new DataIntegrityViolationException("Пользователь уже подписан на этот сервис");
+        }
+
         Subscription subscription = subscriptionMapper.toSubscription(subscriptionDTO);
 
         subscription.setUser(user);
@@ -91,5 +103,36 @@ public class SubscriptionService {
 
         subscriptionRepository.deleteById(subId);
         log.info("Подписка ID {} успешно удалена у пользователя ID {}", subId, userId);
+    }
+    /**
+     * Получает ТОП-3 самых популярных подписок по количеству пользователей.
+     *
+     * <p>Метод выполняет следующие шаги:</p>
+     * <ol>
+     *     <li>Запрашивает названия ТОП-3 подписок с наибольшим количеством пользователей.</li>
+     *     <li>Загружает все подписки, относящиеся к этим названиям.</li>
+     *     <li>Группирует подписки по названию сервиса и считает количество подписчиков.</li>
+     *     <li>Преобразует данные в DTO и сортирует по убыванию популярности.</li>
+     * </ol>
+     *
+     * @return Список {@link SubscriptionTopDTO}, содержащий ТОП-3 подписок.
+     */
+    public List<SubscriptionTopDTO> getTopSubscriptions() {
+        List<String> subscriptionsNames = subscriptionRepository.findAllTop().stream()
+                .limit(3)
+                .toList();
+
+        List<Subscription> subscriptionList = subscriptionRepository.findByServiceNameIn(subscriptionsNames);
+
+        Map<String, Long> subscriptionCountMap = subscriptionList.stream()
+                .collect(Collectors.groupingBy(Subscription::getServiceName, Collectors.counting()));
+
+        return subscriptionCountMap.entrySet().stream()
+                .map(entry -> SubscriptionTopDTO.builder()
+                        .serviceName(entry.getKey())
+                        .count(entry.getValue())
+                        .build()
+                ).sorted(Comparator.comparingLong(SubscriptionTopDTO::getCount).reversed())
+                .toList();
     }
 }

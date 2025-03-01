@@ -15,6 +15,9 @@ public final class ExceptionFactory {
     public static SubscriptionNotFoundException subscriptionNotFound(Long subscriptionId) {
         return new SubscriptionNotFoundException(String.format("Подписка с id: %d не найдена", subscriptionId));
     }
+    public static SubscriptionNotFoundException subscriptionNotFound(String serviceName) {
+        return new SubscriptionNotFoundException(String.format("Подписка с serviceName: %s не найдена", serviceName));
+    }
     public static SubscriptionNotBelongToUserException subscriptionNotBelongToUser(Long userId, Long subscriptionId) {
         return new SubscriptionNotBelongToUserException(String
                 .format("Подписка %d не принадлежит пользователю %d", subscriptionId, userId));
