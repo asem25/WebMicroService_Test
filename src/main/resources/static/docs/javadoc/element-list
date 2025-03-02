@@ -1,0 +1,10 @@
+ru.semavin.microservice
+ru.semavin.microservice.config
+ru.semavin.microservice.controllers
+ru.semavin.microservice.dtos
+ru.semavin.microservice.mapper
+ru.semavin.microservice.models
+ru.semavin.microservice.repositrories
+ru.semavin.microservice.services
+ru.semavin.microservice.util
+ru.semavin.microservice.util.exceptions
