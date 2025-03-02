@@ -55,7 +55,7 @@
    ```bash
    cd microservice
    ```
-3. **Соберите** проект (Maven или Gradle):
+3. **Соберите** проект (Maven):
    ```bash
    ./mvnw package -DskipTests
    ```
